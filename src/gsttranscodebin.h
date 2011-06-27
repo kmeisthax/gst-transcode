@@ -49,8 +49,8 @@ typedef struct _GstTranscodeBin
     GstElement* ebin;
     GstElement* dbin;
     
-    GstGhostPad* srcpad;
-    GstGhostPad* sinkpad;
+    GstPad* srcpad;
+    GstPad* sinkpad;
     
     GstCaps* dcaps;
     GList* reqpads;

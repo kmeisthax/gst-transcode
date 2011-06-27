@@ -19,7 +19,10 @@
 
 #include "gsttranscodebin.h"
 
+#include <gst/pbutils/encoding-profile.h>
+
 //more GObject related boilerplate
+GST_BOILERPLATE(GstTranscodeBin, gst_transcode_bin, GstBin, GST_TYPE_BIN);
 
 enum {
     PROP_0,
@@ -27,7 +30,7 @@ enum {
     PROP_COUNT
 };
 
-static void gst_transcode_bin_set_property(GObject* goself, guint propid, GValue* val, GParamSpec* pspec) {
+static void gst_transcode_bin_set_property(GObject* goself, guint propid, const GValue* val, GParamSpec* pspec) {
     GstTranscodeBin *self = (GstTranscodeBin*) goself;
     
     switch (propid) {
@@ -66,14 +69,14 @@ static void gst_transcode_bin_dispose (GObject *goself) {
         self->reqpads = g_list_delete_link(self->reqpads, self->reqpads);
     }
     
-    G_OBJECT_CLASS (gst_transcode_bin_parent_class)->dispose(goself);
+    G_OBJECT_CLASS (parent_class)->dispose(goself);
 };
 
 static void gst_transcode_bin_class_init (GstTranscodeBinClass* kls) {
     GObjectClass *gokls = G_OBJECT_CLASS (kls);
-    GstElementClass *elemkls = GST_ELEMENT_CLASS (kls);
     gokls->get_property = gst_transcode_bin_get_property;
     gokls->set_property = gst_transcode_bin_set_property;
+    gokls->dispose = gst_transcode_bin_dispose;
 
     g_object_class_install_property(gokls,
                                     PROP_PROFILE,
@@ -82,15 +85,9 @@ static void gst_transcode_bin_class_init (GstTranscodeBinClass* kls) {
                                                                "The GstEncodingProfile to use",
                                                                GST_TYPE_ENCODING_PROFILE,
                                                                G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
-
-    gst_element_class_set_details_simple (elemkls,
-                                          "Automatic Transcoder",
-                                          "Generic/Bin/Transcoder",
-                                          "Convenience transcoding element.\n\nElement capable of taking any input GStreamer can decode and encoding to any profile GStreamer supports without hassle.",
-                                          "David Wendt <dcrkid@yahoo.com>");
 };
 
-static bool gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, GstPad *pad) {
+static gboolean gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, GstPad *pad) {
     GstPad* encode_sink = NULL;
     encode_sink = gst_element_get_compatible_pad((GstElement*) self->ebin, pad, self->dcaps);
     
@@ -102,7 +99,7 @@ static bool gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, GstPad 
     
     if (encode_sink == NULL) {
         //TODO: Make this post some sort of error
-        return false;
+        return FALSE;
     }
     
     gboolean link_ok = (gst_pad_link(pad, encode_sink) == GST_PAD_LINK_OK);
@@ -111,20 +108,20 @@ static bool gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, GstPad 
         gst_element_release_request_pad(self->ebin, encode_sink);
         gst_object_unref(encode_sink);
     } else if (is_request_pad) {
-        g_list_prepend(self->reqpads, encode_sink);
+        self->reqpads = g_list_prepend(self->reqpads, encode_sink);
     }
     
     return link_ok;
 };
 
-static bool gst_transcode_bin_dbin_autoplug_continue(GstDecodeBin2 *bin, GstPad *pad, GstCaps *caps, gpointer user_data) {
+static gboolean gst_transcode_bin_dbin_autoplug_continue(GstElement* bin, GstPad* pad, GstCaps* caps, gpointer user_data) {
     GstTranscodeBin* self = GST_TRANSCODE_BIN (user_data);
     self->dcaps = caps;
     
     return !gst_transcode_bin_cast_autoplug_spell(self, pad);
 };
 
-static void gst_transcode_bin_dbin_pad_added(GstDecodeBin2 *bin, GstPad *pad, gpointer user_data) {
+static void gst_transcode_bin_dbin_pad_added(GstElement* bin, GstPad* pad, gpointer user_data) {
     GstTranscodeBin* self = GST_TRANSCODE_BIN (user_data);
     gst_transcode_bin_cast_autoplug_spell(self, pad);
 };
@@ -132,7 +129,7 @@ static void gst_transcode_bin_dbin_pad_added(GstDecodeBin2 *bin, GstPad *pad, gp
 #define     ENCODE_BIN      "encodebin"
 #define     DECODE_BIN      "decodebin2"
 
-static void gst_transcode_bin_init (GstTranscodeBin* self) {
+static void gst_transcode_bin_init (GstTranscodeBin* self, GstTranscodeBinClass* kls) {
     GstBin* gbself = (GstBin*) self;
     GstElement* geself = (GstElement*) self;
     
@@ -151,11 +148,19 @@ static void gst_transcode_bin_init (GstTranscodeBin* self) {
     self->srcpad = gst_ghost_pad_new("src", isrcpad);
     self->sinkpad = gst_ghost_pad_new("sink", isinkpad);
     
-    gst_element_add_pad(geself, self->srcpad);
-    gst_element_add_pad(geself, self->sinkpad);
+    gst_element_add_pad(geself, GST_PAD (self->srcpad)  );
+    gst_element_add_pad(geself, GST_PAD (self->sinkpad) );
     
     self->dcaps = NULL;
     self->reqpads = NULL;
 };
 
-GST_BOILERPLATE(GstTranscodeBin, gst_transcode_bin, GstBin, GST_TYPE_BIN);
+static void gst_transcode_bin_base_init (gpointer gpkls) {
+    GstElementClass* elemkls = GST_ELEMENT_CLASS (gpkls);
+
+    gst_element_class_set_details_simple (elemkls,
+                                          "Automatic Transcoder",
+                                          "Generic/Bin/Transcoder",
+                                          "Convenience transcoding element.\n\nElement capable of taking any input GStreamer can decode and encoding to any profile GStreamer supports without hassle.",
+                                          "David Wendt <dcrkid@yahoo.com>");
+};
