@@ -20,6 +20,7 @@
 #include <gst/gst.h>
 
 #include "gsttranscodebin.h"
+#include "config.h"
 
 static gboolean plugin_init (GstPlugin* plugin) {
     GST_DEBUG_CATEGORY_INIT(gst_plugin_template_debug, "plugin", 0, "GSTTranscode plugin");
@@ -33,7 +34,7 @@ GST_PLUGIN_DEFINE (
     "gst-transcode",
     "Transcoding helpers for GStreamer"
     plugin_init,
-    "0.0",
+    VERSION,
     "LGPL",
     "libgst-transcode",
     ""
