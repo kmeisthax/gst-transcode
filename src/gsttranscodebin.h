@@ -20,9 +20,7 @@
 #ifndef __GST_TRANSCODE_BIN_H__
 #define __GST_TRANSCODE_BIN_H__
 
-#include <glib-gobject.h>
 #include <gst/gst.h>
-#include <gst/pbutils/encoding-profile.h>
 
 G_BEGIN_DECLS
 

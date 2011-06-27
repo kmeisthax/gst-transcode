@@ -53,7 +53,7 @@ static void gst_transcode_bin_get_property(GObject* goself, guint propid, GValue
     }
 };
 
-static void gst_transcode_bin_dispoase (GObject *goself) {
+static void gst_transcode_bin_dispose (GObject *goself) {
     GstTranscodeBin* self = GST_TRANSCODE_BIN (goself);
     
     //Release and unref any remaining request pads

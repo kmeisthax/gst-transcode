@@ -23,8 +23,6 @@
 #include "config.h"
 
 static gboolean plugin_init (GstPlugin* plugin) {
-    GST_DEBUG_CATEGORY_INIT(gst_plugin_template_debug, "plugin", 0, "GSTTranscode plugin");
-
     return gst_element_register (plugin, "transcodebin", GST_RANK_NONE, GST_TYPE_TRANSCODE_BIN);
 };
 
@@ -32,10 +30,10 @@ GST_PLUGIN_DEFINE (
     GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
     "gst-transcode",
-    "Transcoding helpers for GStreamer"
+    "Transcoding helpers for GStreamer",
     plugin_init,
     VERSION,
     "LGPL",
     "libgst-transcode",
-    ""
+    "http://gstreamer.net/" //FIXME: Get an actual url
 )
