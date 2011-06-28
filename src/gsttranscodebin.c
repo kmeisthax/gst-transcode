@@ -21,7 +21,6 @@
 
 #include <gst/pbutils/encoding-profile.h>
 
-//more GObject related boilerplate
 GST_BOILERPLATE(GstTranscodeBin, gst_transcode_bin, GstBin, GST_TYPE_BIN);
 
 enum {
@@ -59,7 +58,6 @@ static void gst_transcode_bin_get_property(GObject* goself, guint propid, GValue
 static void gst_transcode_bin_dispose (GObject *goself) {
     GstTranscodeBin* self = GST_TRANSCODE_BIN (goself);
     
-    //Release and unref any remaining request pads
     while (self->reqpads != NULL) {
         GstPad* pad = GST_PAD (self->reqpads->data);
         
@@ -98,7 +96,7 @@ static gboolean gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, Gst
     }
     
     if (encode_sink == NULL) {
-        //TODO: Make this post some sort of error
+        /* TODO: Make this post some sort of error */
         return FALSE;
     }
     
