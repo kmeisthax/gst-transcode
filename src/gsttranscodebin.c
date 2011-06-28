@@ -133,7 +133,6 @@ static void gst_transcode_bin_init (GstTranscodeBin* self, GstTranscodeBinClass*
     GstBin* gbself = (GstBin*) self;
     GstElement* geself = (GstElement*) self;
     
-    //Rygel makes the encode/decode bins this way, no clue why
     self->ebin = gst_element_factory_make(ENCODE_BIN, ENCODE_BIN);
     self->dbin = gst_element_factory_make(DECODE_BIN, DECODE_BIN);
     

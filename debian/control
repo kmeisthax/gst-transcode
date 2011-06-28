@@ -1,7 +1,7 @@
 Source: gstreamer0.10-transcode
 Priority: extra
 Maintainer: David Wendt <dcrkid@yahoo.com>
-Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libgstreamer0.10-0-dev
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libgstreamer0.10-dev, libgstreamer-plugins-base0.10-dev
 Standards-Version: 3.9.1
 Section: libs
 Homepage: <insert the upstream URL, if relevant>
