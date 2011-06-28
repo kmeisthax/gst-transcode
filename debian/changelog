@@ -1,0 +1,5 @@
+gstreamer0.10-transcode (0.10.35) unstable; urgency=low
+
+  * Initial Release.
+
+ -- David Wendt <dcrkid@yahoo.com>  Mon, 27 Jun 2011 19:01:42 -0400

@@ -1,0 +1,17 @@
+Source: gstreamer0.10-transcode
+Priority: extra
+Maintainer: David Wendt <dcrkid@yahoo.com>
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev, libgstreamer0.10-0-dev
+Standards-Version: 3.9.1
+Section: libs
+Homepage: <insert the upstream URL, if relevant>
+#Vcs-Git: git://git.debian.org/collab-maint/gst-transcode.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/gst-transcode.git;a=summary
+
+Package: gstreamer0.10-transcode
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Version: 0.10.35
+Description: Transcoding support for Gstreamer
+ Adds code and elements useful for media re-encoding servers such as Rygel.

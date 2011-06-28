@@ -2,11 +2,11 @@ dnl required version of autoconf
 AC_PREREQ([2.53])
 
 dnl TODO: fill in your package name and package version here
-AC_INIT([my-plugin-package],[0.10.0])
+AC_INIT([gst-transcode], [0.10.32])
 
 dnl required versions of gstreamer and plugins-base
-GST_REQUIRED=0.10.16
-GSTPB_REQUIRED=0.10.16
+GST_REQUIRED=0.10.32
+GSTPB_REQUIRED=0.10.32
 
 AC_CONFIG_SRCDIR([src/plugin_defs.c])
 AC_CONFIG_HEADERS([config.h])
@@ -79,7 +79,7 @@ fi
 AC_SUBST(plugindir)
 
 dnl set proper LDFLAGS for plugins
-GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst\|GST_\).*'
+GST_PLUGIN_LDFLAGS='-module -avoid-version -export-symbols-regex [_]*\(gst_\|Gst\|GST_\).* -version-info 0:0:0'
 AC_SUBST(GST_PLUGIN_LDFLAGS)
 
 AC_CONFIG_FILES([Makefile src/Makefile])
