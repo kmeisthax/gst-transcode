@@ -19,15 +19,14 @@
 
 #include <glib-object.h>
 #include <gst/gst.h>
-//include <gtk/gtk.h>
 #include <gst/pbutils/encoding-profile.h>
-#include <gupnp-dlna-discoverer.h>
+#include <libgupnp-dlna/gupnp-dlna-discoverer.h>
 
 #include <stdio.h>
 #include <unistd.h>
 
 int create_transcode_pipeline(const char* source_filename, const char* dest_filename, GstEncodingProfile* prof, GstPipeline** pipe) {
-    *pipe = gst_pipeline_new("tcode");
+    *pipe = (GstPipeline*)gst_pipeline_new("tcode");
     if (*pipe == NULL) {
         printf("Could not construct Pipeline\n");
         return -1;
@@ -176,10 +175,10 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -12;
     }
     
-    GstPadLinkReturn linkret = gst_pad_link(xcod_srcpad, fsink_sinkpad);
+    GstPadLinkReturn linkret2 = gst_pad_link(xcod_srcpad, fsink_sinkpad);
     gst_object_unref(xcod_srcpad);
     gst_object_unref(fsink_sinkpad);
-    if (linkret != GST_PAD_LINK_OK) {
+    if (linkret2 != GST_PAD_LINK_OK) {
         printf("Error when linking transcodebin and filesink pads; error code %d\n", linkret);
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -234,12 +233,13 @@ int main (int argc, char** argv) {
     /* Transcode standard input into all available DLNA video profiles.
      */
     g_type_init();
+    g_thread_init(NULL);
     gst_init(&argc, &argv);
     
-    GUPnPDLNADiscoverer* profsrc = gupnp_dlna_discoverer_new(10 * GST_SECOND, FALSE, FALSE);
+    GUPnPDLNADiscoverer* profsrc = gupnp_dlna_discoverer_new((GstClockTime)10 * GST_SECOND, FALSE, FALSE);
     if (profsrc == NULL) {
         printf("Could not construct GUPnP-DLNA Discoverer\n");
-        exit(-13);
+        exit(-1);
     }
 
     const GList* profiles = gupnp_dlna_discoverer_list_profiles(profsrc);
@@ -247,7 +247,11 @@ int main (int argc, char** argv) {
     
     char source_filename[81];
     printf("Please enter source filename (80 chars max): ");
-    fgets(source_filename, 81, stdin);
+    char* result = fgets(source_filename, 81, stdin);
+    if (result == NULL) {
+        printf("EOF reached, quitting...");
+        exit(-2);
+    }
     
     char dest_filename[91];
 
@@ -295,7 +299,7 @@ int main (int argc, char** argv) {
 
         if (die) continue;
 
-        while (true) {
+        while (TRUE) {
             sleep(5);
             
             GstQuery *duration, *position;
@@ -339,4 +343,5 @@ int main (int argc, char** argv) {
     }
 
     printf("Made %d test encodes\n", num_profs + 1);
+    return 0;
 };
