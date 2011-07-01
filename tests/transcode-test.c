@@ -119,7 +119,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
     }
     
     GstPad* xcod_sinkpad = gst_element_get_static_pad(xcode, "sink");
-    if (fsrc_srcpad == NULL) {
+    if (xcod_sinkpad == NULL) {
         printf("WTF, transcodebin has no sinkpad\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -149,7 +149,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
     }
 
     GstPad* xcod_srcpad = gst_element_get_static_pad(xcode, "src");
-    if (fsrc_srcpad == NULL) {
+    if (xcod_srcpad == NULL) {
         printf("WTF, transcodebin has no srcpad\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -161,8 +161,8 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -11;
     }
     
-    GstPad* fsink_sinkpad = gst_element_get_static_pad(filesrc, "sink");
-    if (fsrc_srcpad == NULL) {
+    GstPad* fsink_sinkpad = gst_element_get_static_pad(filesink, "sink");
+    if (fsink_sinkpad == NULL) {
         printf("WTF, filesink has no sinkpad\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
