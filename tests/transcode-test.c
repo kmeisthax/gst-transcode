@@ -77,7 +77,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -6;
     }
     
-    GstElement* filesink = gst_element_factory_create(fsrcfact, "file-sink");
+    GstElement* filesink = gst_element_factory_create(fsinkfact, "file-sink");
     if (filesink == NULL) {
         printf("Could not construct File Sink element\n");
         gst_object_unref(*pipe);
@@ -88,22 +88,10 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         gst_object_unref(fsinkfact);
         return -7;
     }
-
-    GValue vsrcfile = {0};
-    GValue vdstfile = {0};
-    GValue vencprof = {0};
     
-    g_value_init(&vsrcfile, G_TYPE_STRING);
-    g_value_set_string(&vsrcfile, source_filename);
-    g_object_set_property(G_OBJECT (filesrc), "location", &vsrcfile);
-
-    g_value_init(&vdstfile, G_TYPE_STRING);
-    g_value_set_string(&vdstfile, dest_filename);
-    g_object_set_property(G_OBJECT (filesink), "location", &vdstfile);
-
-    g_value_init(&vencprof, GST_TYPE_MINI_OBJECT);
-    gst_value_set_mini_object(&vencprof, GST_MINI_OBJECT (prof));
-    g_object_set_property(G_OBJECT (xcode), "profile", &vencprof);
+    g_object_set(G_OBJECT (filesrc), "location", source_filename, NULL);
+    g_object_set(G_OBJECT (filesink), "location", dest_filename, NULL);
+    g_object_set(G_OBJECT (xcode), "profile", prof, NULL);
 
     GstPad* fsrc_srcpad = gst_element_get_static_pad(filesrc, "src");
     if (fsrc_srcpad == NULL) {
@@ -247,20 +235,18 @@ int main (int argc, char** argv) {
     
     char source_filename[81];
     printf("Please enter source filename (80 chars max): ");
-    char* result = fgets(source_filename, 81, stdin);
-    if (result == NULL) {
-        printf("EOF reached, quitting...");
-        exit(-2);
-    }
+    scanf("%s", source_filename);
     
     char dest_filename[91];
 
     while (profiles != NULL) {
-        sprintf(dest_filename, "%s-%d", source_filename, num_profs);
-
-        GstEncodingProfile* prof = GST_ENCODING_PROFILE (profiles->data);
+        GstEncodingProfile* prof = gupnp_dlna_profile_get_encoding_profile(profiles->data);
         profiles = profiles->next;
         num_profs++;
+        
+        sprintf(dest_filename, "%s-%d", source_filename, num_profs);
+
+        printf("Transcoding %s to %s\n", source_filename, dest_filename);
         
         GstPipeline* pipe = NULL;
         int succ = create_transcode_pipeline(source_filename, dest_filename, prof, &pipe);
