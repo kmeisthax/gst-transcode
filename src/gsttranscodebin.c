@@ -75,11 +75,15 @@ static void gst_transcode_bin_class_init (GstTranscodeBinClass* kls) {
     gokls->get_property = gst_transcode_bin_get_property;
     gokls->set_property = gst_transcode_bin_set_property;
     gokls->dispose = gst_transcode_bin_dispose;
-
+    /** GstTranscodeBin:profile:
+     *
+     * Encoding profile to target. Like #GstEncodeBin, must be set before going to
+     * %GST_STATE_PAUSED or higher.
+     */
     g_object_class_install_property(gokls,
                                     PROP_PROFILE,
-                                    gst_param_spec_mini_object(GST_TRANSCODE_BIN_PROP_PROFILE,
-                                                               "Profile",
+                                    gst_param_spec_mini_object("profile",
+                                                               "profile",
                                                                "The GstEncodingProfile to use",
                                                                GST_TYPE_ENCODING_PROFILE,
                                                                G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));

@@ -60,16 +60,6 @@ typedef GstBinClass GstTranscodeBinClass;
 
 GType gst_transcode_bin_get_type(void);
 
-/* Properties */
-
-/** GstTranscodeBin:profile:
- *
- * Encoding profile to target. Like #GstEncodeBin, must be set before going to
- * %GST_STATE_PAUSED or higher.
- */
-
-#define GST_TRANSCODE_BIN_PROP_PROFILE           "profile"
-
 G_END_DECLS
 
 #endif
