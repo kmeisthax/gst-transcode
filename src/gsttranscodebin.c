@@ -100,8 +100,10 @@ static gboolean gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, Gst
         
         if (encode_sink == NULL) {
             gchar* padname = gst_pad_get_name(pad);
-            g_debug("No compatible encodebin pad found for pad '%s', ignoring...", padname);
+            gchar* decaps = gst_caps_to_string(self->dcaps);
+            g_debug("No compatible encodebin pad found for pad '%s' with caps '%s', ignoring...", padname, decaps);
             g_free(padname);
+            g_free(decaps);
             return FALSE;
         }
     }

@@ -29,25 +29,13 @@ AC_CHECK_PROG(HAVE_PKGCONFIG, pkg-config, [ ], [
   AC_MSG_ERROR([You need to have pkg-config installed!])
 ])
 
-dnl Check for the required version of GStreamer core (and gst-plugins-base)
-dnl This will export GST_CFLAGS and GST_LIBS variables for use in Makefile.am
-dnl
-dnl If you need libraries from gst-plugins-base here, also add:
-dnl for libgstaudio-0.10: gstreamer-audio-0.10 >= $GST_REQUIRED
-dnl for libgstvideo-0.10: gstreamer-video-0.10 >= $GST_REQUIRED
-dnl for libgsttag-0.10: gstreamer-tag-0.10 >= $GST_REQUIRED
-dnl for libgstpbutils-0.10: gstreamer-pbutils-0.10 >= $GST_REQUIRED
-dnl for libgstfft-0.10: gstreamer-fft-0.10 >= $GST_REQUIRED
-dnl for libgstinterfaces-0.10: gstreamer-interfaces-0.10 >= $GST_REQUIRED
-dnl for libgstrtp-0.10: gstreamer-rtp-0.10 >= $GST_REQUIRED
-dnl for libgstrtsp-0.10: gstreamer-rtsp-0.10 >= $GST_REQUIRED
-dnl etc.
+dnl To compile the tests folder, add this line:
+dnl gupnp-dlna-1.0 >= 0.4.2
 PKG_CHECK_MODULES(GST, [
   gstreamer-0.10 >= $GST_REQUIRED
   gstreamer-base-0.10 >= $GST_REQUIRED
   gstreamer-controller-0.10 >= $GST_REQUIRED
   gstreamer-pbutils-0.10 >= $GST_REQUIRED
-  gupnp-dlna-1.0 >= 0.4.2
 ], [
   AC_SUBST(GST_CFLAGS)
   AC_SUBST(GST_LIBS)
