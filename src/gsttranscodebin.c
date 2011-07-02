@@ -33,9 +33,10 @@ static void gst_transcode_bin_set_property(GObject* goself, guint propid, const 
     GstTranscodeBin *self = (GstTranscodeBin*) goself;
     
     switch (propid) {
-        case PROP_PROFILE:
-            g_object_set_property(G_OBJECT (self->ebin), "profile", val);
-            break;
+        case PROP_PROFILE: {
+            GstEncodingProfile* prof = GST_ENCODING_PROFILE (gst_value_get_mini_object (val));
+            g_object_set(G_OBJECT (self->ebin), "profile", prof, NULL);
+            break; }
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID(goself, propid, pspec);
             break;
@@ -90,19 +91,30 @@ static void gst_transcode_bin_class_init (GstTranscodeBinClass* kls) {
 };
 
 static gboolean gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, GstPad *pad) {
-    GstPad* encode_sink = NULL;
-    encode_sink = gst_element_get_compatible_pad((GstElement*) self->ebin, pad, self->dcaps);
+    GstPad* encode_sink = gst_element_get_compatible_pad(self->ebin, pad, NULL);
     
     gboolean is_request_pad = FALSE;
     if (encode_sink == NULL) {
-        g_signal_emit_by_name(self->ebin, "request-pad", self->ebin, self->dcaps, &encode_sink);
+        g_signal_emit_by_name(self->ebin, "request-pad", gst_pad_get_caps(pad), &encode_sink, NULL);
         is_request_pad = TRUE;
+        
+        if (encode_sink == NULL) {
+            gchar* padname = gst_pad_get_name(pad);
+            g_debug("No compatible encodebin pad found for pad '%s', ignoring...", padname);
+            g_free(padname);
+            return FALSE;
+        }
     }
     
-    if (encode_sink == NULL) {
-        /* TODO: Make this post some sort of error */
-        return FALSE;
-    }
+    gchar* padname = gst_pad_get_name(pad);
+    gchar* decaps = gst_caps_to_string(self->dcaps);
+    gchar* epadname = gst_pad_get_name(encode_sink);
+
+    g_debug("pad '%s' with caps '%s' is compatible with '%s'", padname, decaps, epadname);
+
+    g_free(padname);
+    g_free(decaps);
+    g_free(epadname);
     
     gboolean link_ok = (gst_pad_link(pad, encode_sink) == GST_PAD_LINK_OK);
     
@@ -111,6 +123,15 @@ static gboolean gst_transcode_bin_cast_autoplug_spell(GstTranscodeBin *self, Gst
         gst_object_unref(encode_sink);
     } else if (is_request_pad) {
         self->reqpads = g_list_prepend(self->reqpads, encode_sink);
+    }
+
+    if (!link_ok) {
+        gchar* padname = gst_pad_get_name(pad);
+        gchar* epadname = gst_pad_get_name(encode_sink);
+        g_warning("Failed to link pad '%s' to '%s'", padname, epadname);
+
+        g_free(padname);
+        g_free(epadname);
     }
     
     return link_ok;
@@ -149,8 +170,8 @@ static void gst_transcode_bin_init (GstTranscodeBin* self, GstTranscodeBinClass*
     self->srcpad = gst_ghost_pad_new("src", isrcpad);
     self->sinkpad = gst_ghost_pad_new("sink", isinkpad);
     
-    gst_element_add_pad(geself, GST_PAD (self->srcpad)  );
-    gst_element_add_pad(geself, GST_PAD (self->sinkpad) );
+    gst_element_add_pad(geself, self->sinkpad);
+    gst_element_add_pad(geself, self->srcpad);
     
     self->dcaps = NULL;
     self->reqpads = NULL;

@@ -39,7 +39,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -2;
     }
     
-    GstElement* xcode = gst_element_factory_create(xcodefact, "tcode-bin");
+    GstElement* xcode = gst_element_factory_create(xcodefact, "transcodebin");
     if (xcode == NULL) {
         printf("Could not construct Transcode bin element\n");
         gst_object_unref(*pipe);
@@ -56,7 +56,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -4;
     }
     
-    GstElement* filesrc = gst_element_factory_create(fsrcfact, "file-src");
+    GstElement* filesrc = gst_element_factory_create(fsrcfact, "filesrc");
     if (filesrc == NULL) {
         printf("Could not construct File Source element\n");
         gst_object_unref(*pipe);
@@ -77,7 +77,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -6;
     }
     
-    GstElement* filesink = gst_element_factory_create(fsinkfact, "file-sink");
+    GstElement* filesink = gst_element_factory_create(fsinkfact, "filesink");
     if (filesink == NULL) {
         printf("Could not construct File Sink element\n");
         gst_object_unref(*pipe);
@@ -88,97 +88,8 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         gst_object_unref(fsinkfact);
         return -7;
     }
-    
-    g_object_set(G_OBJECT (filesrc), "location", source_filename, NULL);
-    g_object_set(G_OBJECT (filesink), "location", dest_filename, NULL);
-    g_object_set(G_OBJECT (xcode), "profile", prof, NULL);
 
-    GstPad* fsrc_srcpad = gst_element_get_static_pad(filesrc, "src");
-    if (fsrc_srcpad == NULL) {
-        printf("WTF, filesrc has no srcpad\n");
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        return -8;
-    }
-    
-    GstPad* xcod_sinkpad = gst_element_get_static_pad(xcode, "sink");
-    if (xcod_sinkpad == NULL) {
-        printf("WTF, transcodebin has no sinkpad\n");
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        gst_object_unref(fsrc_srcpad);
-        return -9;
-    }
-    
-    GstPadLinkReturn linkret = gst_pad_link(fsrc_srcpad, xcod_sinkpad);
-    gst_object_unref(fsrc_srcpad);
-    gst_object_unref(xcod_sinkpad);
-    
-    if (linkret != GST_PAD_LINK_OK) {
-        printf("Error when linking filesrc and transcodebin pads; error code %d\n", linkret);
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        return -10;
-    }
-
-    GstPad* xcod_srcpad = gst_element_get_static_pad(xcode, "src");
-    if (xcod_srcpad == NULL) {
-        printf("WTF, transcodebin has no srcpad\n");
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        return -11;
-    }
-    
-    GstPad* fsink_sinkpad = gst_element_get_static_pad(filesink, "sink");
-    if (fsink_sinkpad == NULL) {
-        printf("WTF, filesink has no sinkpad\n");
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        gst_object_unref(xcod_srcpad);
-        return -12;
-    }
-    
-    GstPadLinkReturn linkret2 = gst_pad_link(xcod_srcpad, fsink_sinkpad);
-    gst_object_unref(xcod_srcpad);
-    gst_object_unref(fsink_sinkpad);
-    if (linkret2 != GST_PAD_LINK_OK) {
-        printf("Error when linking transcodebin and filesink pads; error code %d\n", linkret);
-        gst_object_unref(*pipe);
-        gst_object_unref(xcodefact);
-        gst_object_unref(xcode);
-        gst_object_unref(fsrcfact);
-        gst_object_unref(filesrc);
-        gst_object_unref(fsinkfact);
-        gst_object_unref(filesink);
-        return -13;
-    }
-    
-    if (gst_bin_add(GST_BIN (pipe), filesrc) == FALSE) {
+    if (gst_bin_add(GST_BIN (*pipe), filesrc) == FALSE) {
         printf("FAILED to add filesrc to pipeline\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -190,7 +101,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -14;
     }
 
-    if (gst_bin_add(GST_BIN (pipe), xcode) == FALSE) {
+    if (gst_bin_add(GST_BIN (*pipe), xcode) == FALSE) {
         printf("FAILED to add transcodebin to pipeline\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -201,7 +112,7 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
         return -15;
     }
 
-    if (gst_bin_add(GST_BIN (pipe), filesink) == FALSE) {
+    if (gst_bin_add(GST_BIN (*pipe), filesink) == FALSE) {
         printf("FAILED to add filesink to pipeline\n");
         gst_object_unref(*pipe);
         gst_object_unref(xcodefact);
@@ -214,6 +125,53 @@ int create_transcode_pipeline(const char* source_filename, const char* dest_file
     gst_object_unref(xcodefact);
     gst_object_unref(fsrcfact);
     gst_object_unref(fsinkfact);
+    
+    GstPad* fsrc_srcpad = gst_element_get_static_pad(filesrc, "src");
+    if (fsrc_srcpad == NULL) {
+        printf("WTF, filesrc has no srcpad\n");
+        return -8;
+    }
+    
+    GstPad* xcod_sinkpad = gst_element_get_static_pad(xcode, "sink");
+    if (xcod_sinkpad == NULL) {
+        printf("WTF, transcodebin has no sinkpad\n");
+        gst_object_unref(fsrc_srcpad);
+        return -9;
+    }
+    
+    GstPadLinkReturn linkret = gst_pad_link(fsrc_srcpad, xcod_sinkpad);
+    gst_object_unref(fsrc_srcpad);
+    gst_object_unref(xcod_sinkpad);
+    
+    if (linkret != GST_PAD_LINK_OK) {
+        printf("Error when linking filesrc and transcodebin pads; error code %d\n", linkret);
+        return -10;
+    }
+
+    GstPad* xcod_srcpad = gst_element_get_static_pad(xcode, "src");
+    if (xcod_srcpad == NULL) {
+        printf("WTF, transcodebin has no srcpad\n");
+        return -11;
+    }
+    
+    GstPad* fsink_sinkpad = gst_element_get_static_pad(filesink, "sink");
+    if (fsink_sinkpad == NULL) {
+        printf("WTF, filesink has no sinkpad\n");
+        gst_object_unref(xcod_srcpad);
+        return -12;
+    }
+    
+    GstPadLinkReturn linkret2 = gst_pad_link(xcod_srcpad, fsink_sinkpad);
+    gst_object_unref(xcod_srcpad);
+    gst_object_unref(fsink_sinkpad);
+    if (linkret2 != GST_PAD_LINK_OK) {
+        printf("Error when linking transcodebin and filesink pads; error code %d\n", linkret);
+        return -13;
+    }
+
+    g_object_set(G_OBJECT (filesrc), "location", source_filename, NULL);
+    g_object_set(G_OBJECT (filesink), "location", dest_filename, NULL);
+    g_object_set(G_OBJECT (xcode), "profile", prof, NULL);
     return 0;
 };
 
@@ -229,9 +187,6 @@ int main (int argc, char** argv) {
         printf("Could not construct GUPnP-DLNA Discoverer\n");
         exit(-1);
     }
-
-    const GList* profiles = gupnp_dlna_discoverer_list_profiles(profsrc);
-    int num_profs = -1;
     
     char source_filename[81];
     printf("Please enter source filename (80 chars max): ");
@@ -239,51 +194,55 @@ int main (int argc, char** argv) {
     
     char dest_filename[91];
 
-    while (profiles != NULL) {
-        GstEncodingProfile* prof = gupnp_dlna_profile_get_encoding_profile(profiles->data);
-        profiles = profiles->next;
-        num_profs++;
-        
-        sprintf(dest_filename, "%s-%d", source_filename, num_profs);
+    char dlna_prof[91];
+    printf("Please enter target DLNA profile: ");
+    scanf("%s", dlna_prof);
 
-        printf("Transcoding %s to %s\n", source_filename, dest_filename);
+    GUPnPDLNAProfile* dlprof = gupnp_dlna_discoverer_get_profile(profsrc, dlna_prof);
+    GstEncodingProfile* prof = gupnp_dlna_profile_get_encoding_profile(dlprof);
         
-        GstPipeline* pipe = NULL;
-        int succ = create_transcode_pipeline(source_filename, dest_filename, prof, &pipe);
-        if (succ < 0) {
-            printf("For some reason, the pipeline didn't get created for profile %d (error code %d)\n", num_profs, succ);
-            if (pipe != NULL) {
-                gst_object_unref(pipe);
+    sprintf(dest_filename, "%s.out", source_filename);
+
+    printf("Transcoding %s to %s\n", source_filename, dest_filename);
+        
+    GstPipeline* pipe = NULL;
+    int succ = create_transcode_pipeline(source_filename, dest_filename, prof, &pipe);
+    if (succ < 0) {
+        printf("For some reason, the pipeline didn't get created (error code %d)\n", succ);
+        if (pipe != NULL) {
+            gst_object_unref(pipe);
+        }
+        exit(-1);
+    }
+
+    gboolean die = FALSE;
+    GstStateChangeReturn gelemnst = gst_element_set_state((GstElement*)(pipe), GST_STATE_PLAYING);
+    switch (gelemnst) {
+        case GST_STATE_CHANGE_FAILURE:
+            printf("Attempting to bring the pipeline to playing FAILED. (profile %s)\n", dlna_prof);
+            gst_object_unref(pipe);
+            die = TRUE;
+            break;
+        case GST_STATE_CHANGE_ASYNC:
+            printf("State change asynchronous, waiting for completion...\n");
+            gelemnst = gst_element_get_state((GstElement*)(pipe), NULL, NULL, GST_CLOCK_TIME_NONE);
+            switch (gelemnst) {
+                case GST_STATE_CHANGE_FAILURE:
+                    printf("Attempting to bring the pipeline to playing FAILED. (profile %s)\n", dlna_prof);
+                    gst_object_unref(pipe);
+                    die = TRUE;
+                    break;
+                default:
+                    break;
             }
-            continue;
-        }
+            break;
+        default:
+            break;
+    }
 
-        gboolean die = FALSE;
-        GstStateChangeReturn gelemnst = gst_element_set_state((GstElement*)(pipe), GST_STATE_PLAYING);
-        switch (gelemnst) {
-            case GST_STATE_CHANGE_FAILURE:
-                printf("Attempting to bring the pipeline to playing FAILED. (profile %d)\n", num_profs);
-                gst_object_unref(pipe);
-                die = TRUE;
-                break;
-            case GST_STATE_CHANGE_ASYNC:
-                printf("State change asynchronous, waiting for completion...");
-                gelemnst = gst_element_get_state((GstElement*)(pipe), NULL, NULL, GST_CLOCK_TIME_NONE);
-                switch (gelemnst) {
-                    case GST_STATE_CHANGE_FAILURE:
-                        printf("Attempting to bring the pipeline to playing FAILED. (profile %d)\n", num_profs);
-                        gst_object_unref(pipe);
-                        die = TRUE;
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            default:
-                break;
-        }
-
-        if (die) continue;
+    if (die) {
+        exit(-1);
+    };
 
         while (TRUE) {
             sleep(5);
@@ -326,8 +285,6 @@ int main (int argc, char** argv) {
         }
 
         gst_object_unref(pipe);
-    }
-
-    printf("Made %d test encodes\n", num_profs + 1);
+    
     return 0;
 };
